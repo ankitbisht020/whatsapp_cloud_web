@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import LogsPage from './pages/LogsPage';
 import TemplatesPage from './pages/TemplatesPage';
 import AuthPage from './pages/AuthPage';
+import WhatsAppSetupGuidePage from './pages/WhatsAppSetupGuidePage';
 import ToastContainer from './components/ToastContainer';
 import { useAuthStore } from './store/useStore';
 
@@ -23,12 +24,14 @@ const App: React.FC = () => {
     <BrowserRouter>
       <>
         <Routes>
+          <Route path="/whatsapp-setup-help" element={<WhatsAppSetupGuidePage />} />
+
           <Route element={<PublicRoute />}>
             <Route path="/login" element={<AuthPage mode="login" />} />
             <Route path="/register" element={<AuthPage mode="register" />} />
           </Route>
 
-          <Route >
+          <Route element={<ProtectedRoute />}>
             <Route element={<Layout />}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/contacts" element={<ContactsPage />} />

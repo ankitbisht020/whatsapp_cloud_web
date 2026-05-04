@@ -12,6 +12,7 @@ import type {
   Template,
   TemplateInput,
 } from '../data/mockData';
+// import 
 import { AUTH_TOKEN_STORAGE_KEY, extractTemplateVariables } from '../data/mockData';
 
 const DEFAULT_API_BASE_URL = 'http://localhost:5000/api';

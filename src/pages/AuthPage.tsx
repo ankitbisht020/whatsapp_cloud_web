@@ -1,12 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Lock, Mail, MessageSquare, ShieldCheck, UserCircle2 } from 'lucide-react';
+import { ExternalLink, Eye, EyeOff, Lock, Mail, MessageSquare, ShieldCheck, UserCircle2 } from 'lucide-react';
 import type { LoginClientInput, RegisterClientInput } from '../data/mockData';
 import { useAuthStore, useToastStore } from '../store/useStore';
 
 interface AuthPageProps {
   mode: 'login' | 'register';
 }
+
+const metaWhatsAppSetupUrl = 'https://developers.facebook.com/apps/';
 
 const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
   const navigate = useNavigate();
@@ -28,6 +30,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
     wabaId: '',
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [showPassword, setShowPassword] = useState(false);
 
   const isRegister = mode === 'register';
   const title = isRegister ? 'Create Your Client Workspace' : 'Sign In to Your Workspace';
@@ -223,7 +226,9 @@ const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
             <div className="form-group">
               <label className="form-label">Email *</label>
               <div className="auth-input-icon">
-                <Mail size={16} />
+                <span className="auth-input-leading-icon">
+                  <Mail size={16} />
+                </span>
                 <input
                   className={`form-input ${formErrors.email ? 'error' : ''}`}
                   value={formValues.email}
@@ -238,20 +243,54 @@ const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
             <div className="form-group">
               <label className="form-label">Password *</label>
               <div className="auth-input-icon">
-                <Lock size={16} />
+                <span className="auth-input-leading-icon">
+                  <Lock size={16} />
+                </span>
                 <input
-                  className={`form-input ${formErrors.password ? 'error' : ''}`}
+                  className={`form-input auth-password-input ${formErrors.password ? 'error' : ''}`}
                   value={formValues.password}
                   onChange={(event) => setField('password', event.target.value)}
                   placeholder="secret123"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                 />
+                <button
+                  className="auth-password-toggle"
+                  type="button"
+                  onClick={() => setShowPassword((previous) => !previous)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
               {formErrors.password && <div className="form-error">{formErrors.password}</div>}
             </div>
 
             {isRegister && (
               <>
+                <div className="auth-helper-card">
+                  <div>
+                    <h3>Need WhatsApp API credentials?</h3>
+                    <p>
+                      Open the official Meta developer setup, create your app, then copy the Access
+                      Token, Phone Number ID, and WABA ID back here.
+                    </p>
+                  </div>
+                  <div className="auth-helper-actions">
+                    <Link className="btn btn-secondary auth-helper-btn" to="/whatsapp-setup-help">
+                      Read Setup Guide
+                    </Link>
+                    <a
+                      className="btn btn-secondary auth-helper-btn"
+                      href={metaWhatsAppSetupUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Open Meta Setup
+                      <ExternalLink size={16} />
+                    </a>
+                  </div>
+                </div>
+
                 <div className="form-group">
                   <label className="form-label">WhatsApp Access Token *</label>
                   <textarea
