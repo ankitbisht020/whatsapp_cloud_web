@@ -16,7 +16,57 @@ import type {
 import { AUTH_TOKEN_STORAGE_KEY, extractTemplateVariables } from '../data/mockData';
 
 const DEFAULT_API_BASE_URL = 'http://localhost:5000/api';
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL).replace(/\/+$/, '');
+const API_PROXY_BASE_URL = '/api-proxy';
+const BACKEND_PROXY_BASE_URL = '/backend-proxy';
+
+const trimTrailingSlashes = (value: string) => value.replace(/\/+$/, '');
+
+const configuredApiBaseUrl = trimTrailingSlashes(import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL);
+const shouldUseSecureProxy =
+  typeof window !== 'undefined' &&
+  window.location.protocol === 'https:' &&
+  configuredApiBaseUrl.startsWith('http://');
+
+const API_BASE_URL = shouldUseSecureProxy ? API_PROXY_BASE_URL : configuredApiBaseUrl;
+
+const configuredApiOrigin = (() => {
+  try {
+    return new URL(configuredApiBaseUrl).origin;
+  } catch {
+    return '';
+  }
+})();
+
+const buildProxyAssetUrl = (value: string) =>
+  `${BACKEND_PROXY_BASE_URL}/${value.replace(/^\/+/, '')}`;
+
+const resolveMediaUrl = (url: string, relativeUrl?: string) => {
+  if (!shouldUseSecureProxy) {
+    return url;
+  }
+
+  const candidate = relativeUrl || url;
+
+  if (!candidate) {
+    return url;
+  }
+
+  if (!/^https?:\/\//i.test(candidate)) {
+    return buildProxyAssetUrl(candidate);
+  }
+
+  try {
+    const assetUrl = new URL(candidate);
+
+    if (configuredApiOrigin && assetUrl.origin === configuredApiOrigin) {
+      return buildProxyAssetUrl(`${assetUrl.pathname}${assetUrl.search}${assetUrl.hash}`);
+    }
+  } catch {
+    return url;
+  }
+
+  return candidate;
+};
 
 interface ApiResponse<T> {
   success: boolean;
@@ -136,7 +186,7 @@ const normalizeClient = (client: RawClient): ClientProfile => ({
 
 const normalizeMedia = (media: RawMedia): MediaAsset => ({
   id: media._id,
-  url: media.url,
+  url: resolveMediaUrl(media.url, media.relativeUrl),
   relativeUrl: media.relativeUrl,
   type: media.mediaType,
   filename: media.filename,
